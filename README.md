@@ -20,7 +20,7 @@ You can manage students, attendance, reports — and simply **ask questions like
 The system uses **Gemini AI** to understand queries and return meaningful results.
 
 <p align="center">
-  <img src="deshboard.png" alt="Dashboard Preview" width="90%">
+  <img src="deshbord.png" alt="Dashboard Preview" width="90%">
 </p>
 
 ---
