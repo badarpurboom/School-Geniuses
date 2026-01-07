@@ -42,30 +42,38 @@ The system uses **Gemini AI** to understand queries and return meaningful result
 ```bash
 git clone https://github.com/badarpurboom/School-Geniuses.git
 cd School-Geniuses
+```
 
-2️⃣ Create & activate virtual environment
+### 2️⃣ Create & activate virtual environment
+```bash
 python -m venv venv
 venv\Scripts\activate
+```
 
-
-3️⃣ Install dependencies
+### 3️⃣ Install dependencies
+```bash
 pip install -r requirements.txt
+```
 
+### 🔐 Gemini API Key Setup (required)
 
-🔐 Gemini API Key Setup (required)
+Create a file named **.env** in the project root and add:
 
-Create a file named .env in the project root and add:
-
+```env
 GEMINI_API_KEY=your_api_key_here
-
+```
 
 You can get the key from your Google AI Studio account.
 
-4️⃣ Run Django backend
+### 4️⃣ Run Django backend
+```bash
 python manage.py runserver
+```
 
-5️⃣ Run Streamlit AI interface
+### 5️⃣ Run Streamlit AI interface
+```bash
 streamlit run streamlit_app.py
+```
 
-🎉 Your app is ready!
+🎉 Your app is ready!  
 Open the browser and start asking questions about your school data.
