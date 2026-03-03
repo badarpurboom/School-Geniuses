@@ -90,7 +90,7 @@ Vite dev server automatically proxies `/api` and `/media` to Django backend (`ht
 ## Frontend UI Preview
 
 <p align="center">
-  <img src="deshbord.png" alt="Frontend UI Preview" width="90%">
+  <img src="frontend-ui-preview.png" alt="Frontend UI Preview" width="90%">
 </p>
 
 ## Notes
