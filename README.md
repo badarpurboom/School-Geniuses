@@ -87,6 +87,12 @@ npm run dev
 Frontend runs at `http://127.0.0.1:5173`.
 Vite dev server automatically proxies `/api` and `/media` to Django backend (`http://127.0.0.1:8000`).
 
+## Frontend UI Preview
+
+<p align="center">
+  <img src="deshbord.png" alt="Frontend UI Preview" width="90%">
+</p>
+
 ## Notes
 
 - Login uses Django `/api/login/` and stores token in browser local storage.
