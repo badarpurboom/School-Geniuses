@@ -1,79 +1,94 @@
+# School ERP (Django + React)
 
-# School Geniuses
+This project is a school management system with:
 
-<p align="center">
-  <img src="banner.jpeg" alt="Project Banner" width="90%">
-</p>
+- Django REST backend (`/api/...`)
+- React frontend (Vite + Ant Design) in `frontend/`
 
----
+The old Streamlit UI is no longer required for normal usage.
 
-## 🧠 Introduction
+## Features
 
-**School Geniuses** is an AI-powered School Management System that allows you to
-query your school data using natural language.
+- Dashboard metrics and charts
+- Student admission
+- Staff registration
+- Academics:
+  - Subject creation
+  - Class creation
+  - Timetable management
+  - Student promotion
+- QR attendance
+- Fee collection
+- Examination scheduling and marks entry
+- School AI query assistant (Gemini + LangChain SQL)
 
-You can manage students, attendance, reports — and simply **ask questions like:**
+## Backend Setup
 
-> “Show students with low attendance”  
-> “List students in Class 2”  
+1. Create and activate virtual environment
 
-The system uses **Gemini AI** to understand queries and return meaningful results.
-
-<p align="center">
-  <img src="deshbord.png" alt="Dashboard Preview" width="90%">
-</p>
-
----
-
-## ✨ Features
-
-- 🧑‍🎓 Student management  
-- 🤖 AI query assistant (powered by **Gemini API**)  
-- 📊 Attendance & reports  
-- 🧾 QR generation for students  
-- 🎛️ Simple dashboard  
-- ⚙️ Django + Streamlit integration  
-
----
-
-## ⬇️ Download & Setup
-
-### 1️⃣ Clone the repository
-```bash
-git clone https://github.com/badarpurboom/School-Geniuses.git
-cd School-Geniuses
-```
-
-### 2️⃣ Create & activate virtual environment
 ```bash
 python -m venv venv
 venv\Scripts\activate
 ```
 
-### 3️⃣ Install dependencies
+2. Install Python dependencies
+
 ```bash
 pip install -r requirements.txt
 ```
 
-### 🔐 Gemini API Key Setup (required)
-
-Create a file named **.env** in the project root and add:
+3. Configure environment variables in `.env`
 
 ```env
-GEMINI_API_KEY=your_api_key_here
+GEMINI_API_KEY=your_key_here
 ```
 
-You can get the key from your Google AI Studio account.
+4. Run backend
 
-### 4️⃣ Run Django backend
 ```bash
+python manage.py migrate
 python manage.py runserver
 ```
 
-### 5️⃣ Run Streamlit AI interface
+Backend runs at `http://127.0.0.1:8000`.
+
+## Frontend Setup (React + Ant Design)
+
+1. Go to frontend folder
+
 ```bash
-streamlit run streamlit_app.py
+cd frontend
 ```
 
-🎉 Your app is ready!  
-Open the browser and start asking questions about your school data.
+2. Install Node dependencies
+
+```bash
+npm install
+```
+
+3. Create frontend env file
+
+```bash
+copy .env.example .env
+```
+
+Default value:
+
+```env
+VITE_API_BASE_URL=/api
+```
+
+4. Run frontend
+
+```bash
+npm run dev
+```
+
+Frontend runs at `http://127.0.0.1:5173`.
+Vite dev server automatically proxies `/api` and `/media` to Django backend (`http://127.0.0.1:8000`).
+
+## Notes
+
+- Login uses Django `/api/login/` and stores token in browser local storage.
+- Current backend APIs are mostly open, so token is sent but not strictly required on all endpoints.
+- QR attendance page requires browser camera permission.

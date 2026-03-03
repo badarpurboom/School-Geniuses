@@ -42,7 +42,11 @@ def create_subject(request):
         })
     
 def subject_list(request):
-    subjects = Subject.objects.all().values("id", "name")
+    class_name = request.GET.get("class_name")
+    if class_name:
+        subjects = Subject.objects.filter(classes__name=class_name).distinct().values("id", "name")
+    else:
+        subjects = Subject.objects.all().values("id", "name")
     return JsonResponse(list(subjects), safe=False)
 
 @csrf_exempt
@@ -67,18 +71,6 @@ def create_class(request):
             "class": f"{name}-{section}"
         })
 
-
-@api_view(['GET'])
-def get_class_subjects(request, class_id):
-    subjects = ClassSubject.objects.filter(classroom_id=class_id)
-    data = [
-        {
-            "id": cs.subject.id,
-            "name": cs.subject.name
-        }
-        for cs in subjects
-    ]
-    return Response(data)
 
 # start-----------— COMPLETE & WORKING (Dynamic Time Table APIs)
 # GET ALL CLASSES--
@@ -161,17 +153,17 @@ def get_timetable(request, class_id, day):
     rows = TimeTable.objects.filter(
         classroom_id=class_id,
         day=day
-    ).order_by("period")
+    ).order_by("start_time")
 
     data = []
 
-    for r in rows:
+    for idx, r in enumerate(rows, start=1):
         data.append({
-            "period": r.period,
+            "period": idx,
             "subject": r.subject.name,
             "teacher": r.teacher_name,
-            "time_from": str(r.time_from),
-            "time_to": str(r.time_to),
+            "time_from": str(r.start_time),
+            "time_to": str(r.end_time),
         })
 
     return Response(data)
@@ -181,27 +173,43 @@ def get_timetable(request, class_id, day):
 @api_view(['GET'])
 def get_student_list(request):
     class_id = request.query_params.get('class_id')
-    
+    section_full = request.query_params.get('section_full')
+    class_name = request.query_params.get('class_name')
+    section = request.query_params.get('section')
+
+    students = Student.objects.all()
+
     if class_id:
         try:
-            # 1. Pehle ID se Class ka naam dhoondo (e.g., 19 -> "10th")
-            # Isse aapka CharField wala system disturb nahi hoga
             target_class = ClassRoom.objects.get(id=class_id)
-            
-            # 2. Ab Student table mein us naam se filter karo
-            students = Student.objects.filter(student_class=target_class.name)
-            
+            students = students.filter(
+                student_class=target_class.name,
+                section=target_class.section
+            )
         except ClassRoom.DoesNotExist:
             return JsonResponse([], safe=False)
-    else:
-        students = Student.objects.all()
+
+    if section_full and " - " in section_full:
+        parsed_class, parsed_section = section_full.split(" - ", 1)
+        students = students.filter(
+            student_class=parsed_class.strip(),
+            section=parsed_section.strip()
+        )
+
+    if class_name:
+        students = students.filter(student_class=class_name)
+
+    if section:
+        students = students.filter(section=section)
     
     student_list = []
     for s in students:
         student_list.append({
             "id": s.id,
             "name": s.name,
-            "section": s.section 
+            "section": s.section,
+            "roll_number": s.roll_number,
+            "student_id": s.student_id,
         })
     
     return JsonResponse(student_list, safe=False)
@@ -583,7 +591,4 @@ def class_wise_income(request):
     ]
 
     return Response(chart_data)
-
-
-
 

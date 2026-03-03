@@ -14,6 +14,7 @@ import plotly.express as px
 
 # 1. Sabse pehle Page Config (Ye hamesha top par hona chahiye)
 st.set_page_config(page_title="School Management System", layout="wide")
+API_BASE = "http://127.0.0.1:8000/api"
 
 # 2. Session State Initialize karna (Taki login yaad rahe)
 if "is_logged_in" not in st.session_state:
@@ -21,31 +22,134 @@ if "is_logged_in" not in st.session_state:
 if "user_token" not in st.session_state:
     st.session_state["user_token"] = ""
 
+
+def apply_professional_theme():
+    st.markdown(
+        """
+        <style>
+        @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Source+Serif+4:wght@600&display=swap');
+
+        :root {
+            --bg: #f4f7fb;
+            --panel: #ffffff;
+            --ink: #0f172a;
+            --muted: #475569;
+            --line: #dbe3ef;
+            --brand: #0f766e;
+        }
+
+        .stApp {
+            background:
+                radial-gradient(circle at 12% 8%, #dff6f2 0%, transparent 34%),
+                radial-gradient(circle at 88% 4%, #fff1dc 0%, transparent 30%),
+                linear-gradient(180deg, #f8fbff 0%, var(--bg) 70%);
+            color: var(--ink);
+            font-family: "Manrope", sans-serif;
+        }
+
+        section[data-testid="stSidebar"] {
+            background: linear-gradient(180deg, #0b1220 0%, #111827 100%);
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        section[data-testid="stSidebar"] * {
+            color: #e2e8f0 !important;
+        }
+
+        .hero-title {
+            font-family: "Source Serif 4", serif;
+            color: #0b172a;
+            margin-bottom: 0.15rem;
+            letter-spacing: 0.2px;
+        }
+
+        .hero-subtitle {
+            color: var(--muted);
+            margin-bottom: 1rem;
+        }
+
+        .metric-card {
+            background: linear-gradient(180deg, #ffffff 0%, #f9fcff 100%);
+            border: 1px solid var(--line);
+            border-left: 4px solid var(--brand);
+            border-radius: 14px;
+            padding: 14px 16px;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
+            min-height: 120px;
+        }
+
+        .metric-label {
+            color: #64748b;
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .metric-value {
+            color: #0f172a;
+            font-size: 2rem;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-top: 6px;
+        }
+
+        .metric-note {
+            color: #0f766e;
+            font-size: 0.8rem;
+            margin-top: 8px;
+        }
+
+        .section-title {
+            font-size: 1rem;
+            color: #0f172a;
+            font-weight: 700;
+            margin: 0.2rem 0 0.8rem 0;
+        }
+
+        .stButton > button {
+            border-radius: 10px;
+            font-weight: 700;
+        }
+
+        @media (max-width: 768px) {
+            .metric-value { font-size: 1.6rem; }
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+apply_professional_theme()
+
 # ----------------- LOGIN PAGE -----------------
 def show_login():
-    st.title("🔐 Admin Login")
-    with st.container(border=True):
-        username = st.text_input("Username")
-        password = st.text_input("Password", type="password")
-        if st.button("Login", use_container_width=True):
-            # API CALL (Aapke Django backend ke liye)
-            try:
-                res = requests.post("http://127.0.0.1:8000/api/login/", 
-                                   json={"username": username, "password": password})
-                if res.status_code == 200:
-                    data = res.json()
-                    st.session_state["is_logged_in"] = True
-                    st.session_state["user_token"] = data["token"]
-                    st.success("Login Successful!")
-                    st.rerun()
-                else:
-                    st.error("Invalid Username or Password")
-            except Exception as e:
-                # 💡 SOLUTION: Agar error 'Rerun' wala hai toh use ignore karo
-                if "RerunData" in str(type(e)) or "RerunException" in str(type(e)):
-                    raise e
-                else:
-                    st.error(f"Backend server offline hai! Error: {e}")
+    left, center, right = st.columns([1, 1.3, 1])
+    with center:
+        st.markdown("<h1 class='hero-title'>School ERP Console</h1>", unsafe_allow_html=True)
+        st.markdown("<p class='hero-subtitle'>Secure admin access for operations, academics and analytics.</p>", unsafe_allow_html=True)
+        with st.container(border=True):
+            username = st.text_input("Username")
+            password = st.text_input("Password", type="password")
+            if st.button("Sign In", use_container_width=True, type="primary"):
+                try:
+                    res = requests.post(
+                        f"{API_BASE}/login/",
+                        json={"username": username, "password": password},
+                    )
+                    if res.status_code == 200:
+                        data = res.json()
+                        st.session_state["is_logged_in"] = True
+                        st.session_state["user_token"] = data["token"]
+                        st.success("Login successful.")
+                        st.rerun()
+                    else:
+                        st.error("Invalid username or password.")
+                except Exception as e:
+                    if "RerunData" in str(type(e)) or "RerunException" in str(type(e)):
+                        raise e
+                    st.error(f"Backend server is offline. Error: {e}")
 
 # ----------------- MAIN APP DASHBOARD -----------------
 def show_main_app():
@@ -62,162 +166,122 @@ def show_main_app():
     
     # Logout Button with Red Color and Icon
     # type="primary" use karne se ye Red ya themed color mein highlight ho jayega
-    if st.sidebar.button("⭕ Logout", type="primary", use_container_width=True):
+    if st.sidebar.button("Logout", type="primary", use_container_width=True):
         st.session_state["is_logged_in"] = False
         st.session_state.clear() # Ye session saaf kar dega security ke liye
         st.rerun()
 # ---------------- SIDEBAR MENU -----------------
-    st.sidebar.title("📋 Menu")
+    st.sidebar.markdown("### School Operations")
     menu = st.sidebar.radio(
-        "Select Option",
+        "Navigate",
         ["Dashboard", "Admission", "Staff", "Academics", "Attendance", "Accounts", "Examination", "School LLM"]
     )
 # ---------------- DASHBOARD PAGE ----------------
     if menu == "Dashboard":
-    # --- Custom CSS (Modern Cyberpunk / Glassmorphism) ---
-        # --- Custom CSS (Mobile Responsive & Glassmorphism) ---
-        st.markdown("""
-            <style>
-            @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
-            
-            .main {
-                background: radial-gradient(circle, #1a1a2e 0%, #0f0f1a 100%);
-            }
+        st.markdown("<h1 class='hero-title'>School Command Center</h1>", unsafe_allow_html=True)
+        st.markdown("<p class='hero-subtitle'>Real-time institutional metrics and operational insights.</p>", unsafe_allow_html=True)
 
-            /* Responsive Container for Cards */
-            .card-container {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 20px;
-                justify-content: center;
-                width: 100%;
-            }
-
-            /* Neon Card styling with proper margin for mobile */
-            .neon-card {
-                background: rgba(255, 255, 255, 0.03);
-                backdrop-filter: blur(10px);
-                border-radius: 20px;
-                padding: 25px;
-                border: 1px solid rgba(0, 255, 204, 0.2);
-                box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
-                text-align: center;
-                flex: 1 1 300px; /* PC par 300px se bada, mobile par full width */
-                margin-bottom: 15px; /* Mobile par chipakne se rokne ke liye */
-                transition: 0.4s ease;
-            }
-
-            /* Mobile specific adjustments */
-            @media (max-width: 768px) {
-                .neon-card {
-                    flex: 1 1 100%; /* Phone par full width */
-                    margin-bottom: 20px;
-                }
-                .stat-value {
-                    font-size: 32px; /* Choti screen par font thoda chota */
-                }
-            }
-
-            .stat-value {
-                font-family: 'Orbitron', sans-serif;
-                font-size: 40px;
-                font-weight: 700;
-                background: linear-gradient(to right, #00ffcc, #00d4ff);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-            }
-
-            .stat-title {
-                color: #ffffff;
-                font-family: 'Orbitron', sans-serif;
-                font-size: 13px;
-                letter-spacing: 2px;
-                text-transform: uppercase;
-                opacity: 0.7;
-            }
-            
-            .section-header {
-                font-family: 'Orbitron', sans-serif;
-                color: #00ffcc;
-                border-left: 5px solid #00ffcc;
-                padding-left: 15px;
-                margin: 20px 0;
-            }
-            </style>
-        """, unsafe_allow_html=True)
-
-        st.markdown("<h1 style='text-align: center; color: white; font-family: Orbitron; font-size: 24px;'>SCHOOL COMMAND CENTER</h1>", unsafe_allow_html=True)
-
-        # --- 1. Top KPI Row (Using HTML instead of st.columns for better Mobile control) ---
         try:
-            res = requests.get("http://127.0.0.1:8000/api/dashboard-stats/")
+            res = requests.get(f"{API_BASE}/dashboard-stats/")
             if res.status_code == 200:
                 stats = res.json()
-                
-                # Yahan humne cards ko ek div container mein wrap kiya hai
-                st.markdown(f"""
-                    <div class="card-container">
-                        <div class='neon-card'>
-                            <div class='stat-title'>TOTAL STUDENTS</div>
-                            <div class='stat-value'>{stats['total_students']}</div>
-                            <div style='color: #00ffcc; font-size:12px;'>DATA UPDATED</div>
+                c1, c2, c3 = st.columns(3)
+                with c1:
+                    st.markdown(
+                        f"""
+                        <div class='metric-card'>
+                            <div class='metric-label'>Total Students</div>
+                            <div class='metric-value'>{stats['total_students']}</div>
+                            <div class='metric-note'>Updated from live database</div>
                         </div>
-                        <div class='neon-card' style='border-color: rgba(255, 0, 255, 0.3);'>
-                            <div class='stat-title'>ATTENDANCE</div>
-                            <div class='stat-value' style='background: linear-gradient(to right, #ff00ff, #7000ff); -webkit-background-clip: text;'>{stats['attendance_percent']}%</div>
-                            <div style='color: #ff00ff; font-size:12px;'>LIVE SCAN</div>
+                        """,
+                        unsafe_allow_html=True,
+                    )
+                with c2:
+                    st.markdown(
+                        f"""
+                        <div class='metric-card'>
+                            <div class='metric-label'>Today's Attendance</div>
+                            <div class='metric-value'>{stats['attendance_percent']}%</div>
+                            <div class='metric-note'>{stats['present_today']} present today</div>
                         </div>
-                        <div class='neon-card' style='border-color: rgba(0, 212, 255, 0.3);'>
-                            <div class='stat-title'>TOTAL STAFF</div>
-                            <div class='stat-value' style='background: linear-gradient(to right, #00d4ff, #0055ff); -webkit-background-clip: text;'>{stats['total_staff']}</div>
-                            <div style='color: #00d4ff; font-size:12px;'>ACTIVE OPERATORS</div>
+                        """,
+                        unsafe_allow_html=True,
+                    )
+                with c3:
+                    st.markdown(
+                        f"""
+                        <div class='metric-card'>
+                            <div class='metric-label'>Total Staff</div>
+                            <div class='metric-value'>{stats['total_staff']}</div>
+                            <div class='metric-note'>Active workforce snapshot</div>
                         </div>
-                    </div>
-                """, unsafe_allow_html=True)
-        except:
-            st.error("DATABASE DISCONNECTED")
+                        """,
+                        unsafe_allow_html=True,
+                    )
+        except Exception:
+            st.error("Unable to load dashboard stats.")
 
-        st.write("<br><br>", unsafe_allow_html=True)
+        st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
 
-        # --- 2. Row for Charts ---
         col_left, col_right = st.columns(2)
 
         with col_left:
-            st.markdown("<div class='section-header'>SECTION-WISE ANALYSIS</div>", unsafe_allow_html=True)
+            st.markdown("<div class='section-title'>Section-wise Attendance</div>", unsafe_allow_html=True)
             try:
-                res = requests.get("http://127.0.0.1:8000/api/dashboard/today-attendance/")
+                res = requests.get(f"{API_BASE}/dashboard/today-attendance/")
                 if res.status_code == 200:
                     df = pd.DataFrame(res.json())
-                    # Neon Stacked Bar Chart
-                    chart = alt.Chart(df).mark_bar(cornerRadiusTopLeft=10, cornerRadiusTopRight=10, opacity=0.8).encode(
-                        x=alt.X('class:N', axis=alt.Axis(labelColor='white', grid=False)),
-                        y=alt.Y('present:Q', axis=alt.Axis(labelColor='white')),
-                        color=alt.Color('section:N', scale=alt.Scale(range=['#00ffcc', '#ff00ff', '#00d4ff'])),
-                        tooltip=['class', 'section', 'present']
-                    ).properties(height=350).configure_view(strokeOpacity=0)
+                    chart = (
+                        alt.Chart(df)
+                        .mark_bar(cornerRadiusTopLeft=8, cornerRadiusTopRight=8)
+                        .encode(
+                            x=alt.X("class:N", axis=alt.Axis(labelColor="#334155", title=None)),
+                            y=alt.Y("present:Q", axis=alt.Axis(labelColor="#334155", title="Present Students")),
+                            color=alt.Color(
+                                "section:N",
+                                scale=alt.Scale(range=["#0f766e", "#d97706", "#0284c7", "#b45309"]),
+                            ),
+                            tooltip=["class", "section", "present"],
+                        )
+                        .properties(height=330)
+                        .configure_view(strokeOpacity=0)
+                    )
                     st.altair_chart(chart, use_container_width=True)
-            except:
-                st.warning("ERROR LOADING ANALYTICS")
+            except Exception:
+                st.warning("Unable to load attendance analytics.")
 
         with col_right:
-            st.markdown("<div class='section-header'>FINANCIAL DISTRIBUTION</div>", unsafe_allow_html=True)
+            st.markdown("<div class='section-title'>Class-wise Fee Distribution</div>", unsafe_allow_html=True)
             try:
-                res = requests.get("http://127.0.0.1:8000/api/dashboard/class-income/")
+                res = requests.get(f"{API_BASE}/dashboard/class-income/")
                 if res.status_code == 200:
                     df = pd.DataFrame(res.json())
-                    # Custom Plotly Donut with Neon Colors
-                    import plotly.express as px
-                    fig = px.pie(df, names="class", values="collected", hole=0.6,
-                                color_discrete_sequence=['#00ffcc', '#ff00ff', '#00d4ff', '#7000ff'])
+                    fig = px.pie(
+                        df,
+                        names="class",
+                        values="collected",
+                        hole=0.58,
+                        color_discrete_sequence=["#0f766e", "#d97706", "#0284c7", "#7c3aed", "#b45309"],
+                    )
                     fig.update_layout(
-                        paper_bgcolor='rgba(0,0,0,0)',
-                        legend_font_color="white",
+                        paper_bgcolor="rgba(0,0,0,0)",
+                        legend_font_color="#334155",
                         margin=dict(t=0, b=0, l=0, r=0),
-                        annotations=[dict(text='FEES', x=0.5, y=0.5, font_size=20, showarrow=False, font_color="white")]
+                        annotations=[
+                            dict(
+                                text="Fees",
+                                x=0.5,
+                                y=0.5,
+                                font_size=20,
+                                showarrow=False,
+                                font_color="#0f172a",
+                            )
+                        ],
                     )
                     st.plotly_chart(fig, use_container_width=True)
-            except:
-                st.warning("ERROR LOADING FINANCIALS")
+            except Exception:
+                st.warning("Unable to load financial data.")
 
 
     # ---------------- ADMISSION PAGE ----------------
